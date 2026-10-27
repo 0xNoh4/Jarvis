@@ -1,0 +1,8 @@
+ollama
+SpeechRecognition
+sounddevice
+numpy
+scipy
+vosk
+edge-tts
+pygame

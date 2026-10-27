@@ -1,0 +1,8 @@
+vosk-model-*/
+reply.mp3
+temp.wav
+__pycache__/
+*.pyc
+.env
+jarvis-env/
+venv/
