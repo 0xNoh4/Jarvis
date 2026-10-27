@@ -59,7 +59,7 @@ Listed in `requirements.txt`:
 
 ### Models
 - **Ollama model:** `llama3.2` (about 2 GB). On a weak PC use `llama3.2:1b`.
-- **Vosk model:** `vosk-model-small-en-us-0.15` (small English model, included in the repo as a zip file)
+- **Vosk model:** `vosk-model-small-en-us-0.15` (small English model, already included in the repo as an unzipped folder)
 
 ---
 
@@ -84,15 +84,18 @@ ollama pull llama3.2
 ```
 Check that it works with `ollama run llama3.2`, then type `/bye` to exit.
 
-### 4. Unzip the Vosk model
-The Vosk model is already included in this repository as `vosk-model-small-en-us-0.15.zip`. Unzip it inside the project folder (the model folder must be next to `jarvis.py`):
+### 4. Vosk model (already included)
+The Vosk model is already included in this repository as the folder `vosk-model-small-en-us-0.15`, so there is nothing to download or unzip. Just make sure the folder stays next to `jarvis.py`:
 ```bash
-unzip vosk-model-small-en-us-0.15.zip
+ls
 ```
-After unzipping you should see a folder called `vosk-model-small-en-us-0.15` next to `jarvis.py`.
+You should see both `jarvis.py` and `vosk-model-small-en-us-0.15`.
 
-> If the zip is missing, you can download it from the official source:
-> `wget https://alphacephei.com/vosk/models/vosk-model-small-en-us-0.15.zip`
+> If the folder is missing, you can download it from the official source and unzip it in the project folder:
+> ```bash
+> wget https://alphacephei.com/vosk/models/vosk-model-small-en-us-0.15.zip
+> unzip vosk-model-small-en-us-0.15.zip
+> ```
 
 ### 5. Check your Desktop path
 Open `jarvis.py` and make sure `get_desktop()` points to your own Desktop. See the next section.
@@ -191,7 +194,7 @@ Then read it in Python with `os.environ["GEMINI_API_KEY"]`.
 | `ModuleNotFoundError` | Activate the virtual environment (`source ~/jarvis-env/bin/activate`) and run `pip install -r requirements.txt` |
 | `externally-managed-environment` | You are outside the virtual environment. Activate it first. |
 | `sounddevice` or PortAudio error | `sudo apt install libportaudio2 portaudio19-dev` |
-| Vosk error: folder does not contain model files | Unzip `vosk-model-small-en-us-0.15.zip` in the project folder (step 4) |
+| Vosk error: folder does not contain model files | Make sure the folder `vosk-model-small-en-us-0.15` is next to `jarvis.py` (step 4) |
 | Ollama connection error | Make sure Ollama is running (`ollama serve`) |
 | Jarvis does not hear you | Set the correct microphone as the default input in your system sound settings |
 | File not created on Desktop | Fix the path in `get_desktop()` |
@@ -207,8 +210,7 @@ Then read it in Python with `os.environ["GEMINI_API_KEY"]`.
 ├── requirements.txt    # Python dependencies
 ├── .gitignore
 ├── README.md
-├── vosk-model-small-en-us-0.15.zip   # Vosk model (included in the repo)
-└── vosk-model-small-en-us-0.15/      # created when you unzip the model (not in the repo)
+└── vosk-model-small-en-us-0.15/   # Vosk speech model (included in the repo)
 ```
 
 ---
