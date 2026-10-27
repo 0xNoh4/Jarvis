@@ -7,7 +7,7 @@ You can interrupt it mid-sentence by saying **"Jarvis"**.
 Everything uses free tools, so it costs $0 to build and run.
 
 > ⚠️ **Important: this project is configured for one specific PC.**
-> The "create file" command saves files to a hardcoded Desktop path: `/home/noh4/Desktop`.
+> The "create file" command saves files to a hardcoded Desktop path: `/home/user/Desktop`.
 > On any other computer you must change that path first. See [Changing the Desktop path](#changing-the-desktop-path).
 
 ---
