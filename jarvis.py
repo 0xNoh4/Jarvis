@@ -8,9 +8,9 @@ import numpy as np
 import sounddevice as sd
 from scipy.io.wavfile import write
 from vosk import Model, KaldiRecognizer, SetLogLevel
-
 SetLogLevel(-1)
-vosk_model = Model("vosk-model-small-en-us-0.15")
+MODEL_PATH = Path(__file__).resolve().parent / "vosk-model-small-en-us-0.15"
+vosk_model = Model(str(MODEL_PATH))
 
 def get_desktop():
     return Path("/home/noh4/Desktop")
@@ -55,8 +55,7 @@ def speak(text):
     woke = False
     command = None
 
-    with sd.RawInputStream(samplerate=16000, blocksize=4000, dtype="int16",
-                           channels=1, callback=callback):
+    with sd.RawInputStream(samplerate=16000, blocksize=4000, dtype="int16",channels=1, callback=callback):
         # Phase 1: wait for the word "jarvis" while audio plays
         while pygame.mixer.music.get_busy():
             try:
@@ -134,6 +133,7 @@ def handle(command):
         query = c.replace("search for", "").strip()
         webbrowser.open(f"https://www.google.com/search?q={quote_plus(query)}")
         return f"Searching for {query}"
+    
     # create file
     m = re.search(r"(?:create|make)\s+(?:a\s+)?file\s+(?:called|named|with name)?\s*(.+)", c)
     if m:
