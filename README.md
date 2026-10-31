@@ -1,13 +1,13 @@
 # J.A.R.V.I.S. Voice Assistant
 
 A free, voice-controlled AI assistant inspired by Iron Man's J.A.R.V.I.S., built in Python.
-It listens to your voice, thinks with a local language model (Ollama), and answers with a natural-sounding voice.
+It listens to your voice, thinks with Google's Gemini AI, and answers with a natural-sounding voice.
 You can interrupt it mid-sentence by saying **"Jarvis"**.
 
-Everything uses free tools, so it costs $0 to build and run.
+Everything uses free tools (including the free Gemini API tier), so it costs $0 to build and run.
 
 > ⚠️ **Important: this project is configured for one specific PC.**
-> The "create file" command saves files to a hardcoded Desktop path: `/home/noh4/Desktop`.
+> The "create file" command saves files to a hardcoded Desktop path: `/home/user/Desktop`.
 > On any other computer you must change that path first. See [Changing the Desktop path](#changing-the-desktop-path).
 
 ---
@@ -15,7 +15,7 @@ Everything uses free tools, so it costs $0 to build and run.
 ## Features
 
 - Voice input using speech recognition
-- AI brain powered by **Ollama** (local and private). Gemini or Groq can be used instead.
+- AI brain powered by the **Gemini API** (free tier), with a Jarvis personality and short conversation memory
 - Natural text-to-speech using **edge-tts**
 - Interrupt Jarvis while it talks by saying "Jarvis" (offline word detection with **Vosk**)
 - Built-in commands:
@@ -23,6 +23,7 @@ Everything uses free tools, so it costs $0 to build and run.
   - Open YouTube
   - Search Google
   - Create a file on the Desktop
+  - Open a file from the Desktop by saying its name
 - Easy to extend with your own commands
 
 ---
@@ -34,9 +35,9 @@ Everything uses free tools, so it costs $0 to build and run.
 
 ### Software
 - Python 3.10 or newer
-- [Ollama](https://ollama.com) installed and running
+- A free Gemini API key from [Google AI Studio](https://aistudio.google.com/apikey)
 - A working microphone and speakers (headphones are strongly recommended, see [Tips](#tips))
-- An internet connection (needed by `edge-tts` for the voice and by Google speech recognition)
+- An internet connection (needed by the Gemini API, `edge-tts` for the voice, and Google speech recognition)
 
 ### System packages (Linux)
 ```bash
@@ -48,7 +49,7 @@ Listed in `requirements.txt`:
 
 | Package | Purpose |
 |---|---|
-| `ollama` | Talk to the local language model |
+| `google-genai` | Talk to the Gemini API |
 | `SpeechRecognition` | Convert your speech to text |
 | `sounddevice` | Record from the microphone |
 | `numpy` | Audio processing |
@@ -58,7 +59,7 @@ Listed in `requirements.txt`:
 | `pygame` | Play the generated voice audio |
 
 ### Models
-- **Ollama model:** `llama3.2` (about 2 GB). On a weak PC use `llama3.2:1b`.
+- **Gemini model:** `gemini-2.5-flash` (used through the API, nothing to download)
 - **Vosk model:** `vosk-model-small-en-us-0.15` (small English model, already included in the repo as an unzipped folder)
 
 ---
@@ -78,11 +79,14 @@ source ~/jarvis-env/bin/activate
 pip install -r requirements.txt
 ```
 
-### 3. Download the Ollama model
+### 3. Get a Gemini API key and save it
+1. Go to https://aistudio.google.com/apikey, sign in with Google and click **Create API key**.
+2. Save the key as an environment variable (never write it inside the code):
 ```bash
-ollama pull llama3.2
+echo 'export GEMINI_API_KEY="paste-your-key-here"' >> ~/.bashrc
+source ~/.bashrc
 ```
-Check that it works with `ollama run llama3.2`, then type `/bye` to exit.
+3. Check that it is set: `echo $GEMINI_API_KEY` should print your key.
 
 ### 4. Vosk model (already included)
 The Vosk model is already included in this repository as the folder `vosk-model-small-en-us-0.15`, so there is nothing to download or unzip. Just make sure the folder stays next to `jarvis.py`:
@@ -115,10 +119,10 @@ The file-creation feature uses this function in `jarvis.py`:
 
 ```python
 def get_desktop():
-    return Path("/home/noh4/Desktop")
+    return Path("/home/user/Desktop")
 ```
 
-This path belongs to the original author's PC, so **it will not work on your computer unless your username is also `noh4`.**
+This path belongs to the original author's PC, so **it will not work on your computer unless your username is also `user`.**
 
 **Option 1: automatic (works for any Linux user).** Replace the function with:
 ```python
@@ -147,9 +151,12 @@ Say the word "Jarvis" followed by your command:
 | "Jarvis, search for python tutorials" | Opens Google results for "python tutorials" |
 | "Jarvis, create a file called notes" | Creates `notes.txt` in your Desktop folder |
 | "Jarvis, create a file called report dot py" | Creates `report.py` |
+| "Jarvis, open file notes" | Opens `notes.txt` from your Desktop folder with the default app |
 | "Jarvis, tell me a joke" | Any other question goes to the AI model |
 
 **Interrupting:** while Jarvis is talking, say "Jarvis". It stops immediately and listens to your next sentence, with no need to repeat the wake word.
+
+**Opening files:** Jarvis searches your Desktop folder for the name you say. Say the extension ("notes dot md") if several files share a name.
 
 **File creation rules:**
 - Spaces in names become underscores (`my project` becomes `my_project.txt`)
@@ -162,20 +169,18 @@ Say the word "Jarvis" followed by your command:
 
 | Setting | Where | Default |
 |---|---|---|
-| Ollama model | `model="llama3.2"` in `handle()` | `llama3.2` |
+| Gemini model | `MODEL` variable | `gemini-2.5-flash` |
+| Jarvis personality | `SYSTEM_PROMPT` variable | Polite British-butler style, short spoken answers |
+| Max reply length | `max_output_tokens` | 200 |
 | Voice | `VOICE` variable | `en-GB-RyanNeural` |
-| Desktop / output folder | `get_desktop()` | `/home/noh4/Desktop` |
+| Desktop / output folder | `get_desktop()` | `/home/user/Desktop` |
 | Listening time | `listen(seconds=5)` | 5 seconds |
 | Vosk model folder | `Model("vosk-model-small-en-us-0.15")` | same folder as `jarvis.py` |
 
 To list all available voices: `edge-tts --list-voices`
 
-### Using Gemini or Groq instead of Ollama
-Get a free API key, and store it in an environment variable. **Never write your key directly in the code or upload it to GitHub.**
-```bash
-export GEMINI_API_KEY="your-key"
-```
-Then read it in Python with `os.environ["GEMINI_API_KEY"]`.
+### API key safety
+Jarvis reads the key from the `GEMINI_API_KEY` environment variable. **Never write your key directly in the code or upload it to GitHub.** If you leak it by mistake, delete it at https://aistudio.google.com/apikey and create a new one.
 
 ---
 
@@ -183,7 +188,7 @@ Then read it in Python with `os.environ["GEMINI_API_KEY"]`.
 
 - **Use headphones.** With speakers, the microphone can hear Jarvis's own voice and confuse the "Jarvis" detection.
 - Say "Jarvis" clearly and a bit louder than normal when interrupting.
-- If replies are slow, use the smaller model: `ollama pull llama3.2:1b` and change the model name in the code.
+- If replies are slow, keep `max_output_tokens` low and `thinking_budget=0`. If you hit the free limit, try `gemini-2.5-flash-lite`.
 
 ---
 
@@ -195,7 +200,10 @@ Then read it in Python with `os.environ["GEMINI_API_KEY"]`.
 | `externally-managed-environment` | You are outside the virtual environment. Activate it first. |
 | `sounddevice` or PortAudio error | `sudo apt install libportaudio2 portaudio19-dev` |
 | Vosk error: folder does not contain model files | Make sure the folder `vosk-model-small-en-us-0.15` is next to `jarvis.py` (step 4) |
-| Ollama connection error | Make sure Ollama is running (`ollama serve`) |
+| `No module named 'google'` | Install the right package inside your virtual environment: `pip install google-genai` (not `google-generativeai`) |
+| API key not found | Run `echo $GEMINI_API_KEY`. If empty, repeat step 3 and start Jarvis from that terminal |
+| `429` or quota error | You reached the free tier limit. Wait, or use `gemini-2.5-flash-lite` |
+| "Model not found" | Model names change. Check https://ai.google.dev/gemini-api/docs/models and update `MODEL` |
 | Jarvis does not hear you | Set the correct microphone as the default input in your system sound settings |
 | File not created on Desktop | Fix the path in `get_desktop()` |
 | Browser does not open | `sudo apt install xdg-utils` |
@@ -218,7 +226,8 @@ Then read it in Python with `os.environ["GEMINI_API_KEY"]`.
 ## Known limitations
 
 - Built and tested for one Linux PC. The Desktop path is hardcoded (see above).
-- Needs internet for the voice (edge-tts) and speech recognition (Google).
+- Needs internet for the AI (Gemini API), the voice (edge-tts) and speech recognition (Google).
+- The free Gemini tier has usage limits.
 - Interrupting works best with headphones.
 
 ---

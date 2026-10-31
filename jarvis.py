@@ -1,4 +1,4 @@
-import ollama, speech_recognition as sr, webbrowser, datetime
+import  speech_recognition as sr, webbrowser, datetime
 import asyncio, edge_tts, pygame
 from urllib.parse import quote_plus
 import re
@@ -8,6 +8,58 @@ import numpy as np
 import sounddevice as sd
 from scipy.io.wavfile import write
 from vosk import Model, KaldiRecognizer, SetLogLevel
+import os, subprocess, tempfile
+from google import genai
+from google.genai import types
+
+
+SYSTEM_PROMPT = """You are J.A.R.V.I.S., a personal AI assistant running on your user's computer, in the style of the assistant from the Iron Man films.
+
+Personality:
+- Polite, calm and professional, like a British butler, with dry, subtle wit.
+- Address the user as "sir". Be confident but never arrogant.
+- Occasional light humor is welcome, but never at the cost of being useful.
+
+Rules for replies:
+- Your replies are spoken aloud, so write plain conversational sentences only. No markdown, no bullet points, no emojis, no code blocks.
+- Keep answers short: one to three sentences unless the user asks for detail.
+- Answer the question directly first, then add extra only if it helps.
+- If you don't know something, say so honestly. Never invent facts.
+- You can open websites, search Google, tell the time, and create or open files on the desktop. Do not claim abilities you don't have.
+- If a request is unclear, ask one short clarifying question."""
+
+history = []   # remembers the last few messages
+
+def clean_for_speech(text):
+    text = re.sub(r"[*_`#>]", "", text)       # remove markdown symbols
+    text = re.sub(r"\s+", " ", text).strip()
+    return text
+
+
+MODEL = "gemini-2.5-flash"
+
+client = genai.Client()   # reads GEMINI_API_KEY from the environment automatically
+
+chat = client.chats.create(
+    model=MODEL,
+    config=types.GenerateContentConfig(
+        system_instruction=SYSTEM_PROMPT,
+        max_output_tokens=200,
+        temperature=0.7,
+        thinking_config=types.ThinkingConfig(thinking_budget=0),  # faster replies
+    ),
+)
+
+# ask llm "gemini"
+def ask_llm(command):
+    try:
+        response = chat.send_message(command)
+        answer = clean_for_speech(response.text or "")
+        return answer or "I have no answer for that, sir."
+    except Exception as e:
+        print("Gemini error:", e)
+        return "I'm having trouble reaching my brain, sir."
+
 SetLogLevel(-1)
 MODEL_PATH = Path(__file__).resolve().parent / "vosk-model-small-en-us-0.15"
 vosk_model = Model(str(MODEL_PATH))
@@ -126,9 +178,6 @@ def handle(command):
     if "open youtube" in c:
         webbrowser.open("https://youtube.com")
         return "Opening YouTube"
-    if "open claude" in c:
-        webbrowser.open("https://claude.ai/new")
-        return "Opening claude"
     if "search for" in c:
         query = c.replace("search for", "").strip()
         webbrowser.open(f"https://www.google.com/search?q={quote_plus(query)}")
@@ -144,10 +193,7 @@ def handle(command):
         return "good bye sir"
 
     # otherwise, ask the LLM
-    reply = ollama.chat(model="llama3.2:1b", messages=[
-        {"role": "system", "content": "You are Jarvis, a witty, concise assistant."},
-        {"role": "user", "content": command}])
-    return reply["message"]["content"]
+    return ask_llm(command)
 
 
 # Launch

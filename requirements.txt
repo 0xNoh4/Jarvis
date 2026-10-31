@@ -1,4 +1,4 @@
-ollama
+google-genai
 SpeechRecognition
 sounddevice
 numpy
